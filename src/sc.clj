@@ -15,7 +15,7 @@
     "Read a nul-terminated string. Stop at  or at
      length n, whichever comes first."
     [buf n]
-    (let [bytes (doall (for [_ (range n)] (char (.get buf))))]
+    (let [bytes (doall (for [_ (range n)] (safe-char (.get buf))))]
       (apply str (take-while #(not= % \u 0000) bytes))))
 
   (defn read-field-aux
@@ -56,22 +56,29 @@
 (defn parse-headers
   [buf]
   (parse-buffer buf
-    [:game-engine 1 :byte]
-    [:game-frames 1 :dword]
-    [nil 3 :byte]
-    [:save-time 1 :dword #(Date. (long (* 1000 %)))]
-    [nil 12 :byte]
-    [:game-name 28 :string]
-    [:map-width 1 :word]
-    [:map-height 1 :word]
-    [nil 16 :byte]
-    [:creator-name 24 :string]
-    [nil 1 :byte]
-    [:map-name 26 :string]
-    [nil 38 :byte]
-    [:players-data 432 :byte parse-players-data]
-    [:player-spot-color 8 :dword]
-    [:player-spot-index 8 :byte]))
+  ; http://wiki.devklog.net/index.php?title=The_MoPaQ_Archive_Format specs
+    [:magic 3 :string]
+    [:header-size 1 :dword]
+    [:archive-size 1 :dword]
+    [:format-version 1 :word]
+
+    ))
+;    [:game-engine 1 :byte]
+;    [:game-frames 1 :dword]
+;    [nil 3 :byte]
+;    [:save-time 1 :dword #(Date. (long (* 1000 %)))]
+;    [nil 12 :byte]
+;    [:game-name 28 :string]
+;    [:map-width 1 :word]
+;    [:map-height 1 :word]
+;    [nil 16 :byte]
+;    [:creator-name 24 :string]
+;    [nil 1 :byte]
+;    [:map-name 26 :string]
+;    [nil 38 :byte]
+;    [:players-data 432 :byte parse-players-data]
+;    [:player-spot-color 8 :dword]
+;    [:player-spot-index 8 :byte]))
 
 
 ;
@@ -98,4 +105,4 @@
   (file-channel-to-byte (file-channel filename)))
 
 
-(parse-headers (file-to-byte "replay.SC2Replay"))
+(println (parse-headers (file-to-byte "replay.SC2Replay")))

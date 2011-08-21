@@ -63,6 +63,8 @@
     [:format-version 1 :word]
 
     ))
+
+; TODO - should this be used only to parse only from specific offset?
 ;    [:game-engine 1 :byte]
 ;    [:game-frames 1 :dword]
 ;    [nil 3 :byte]

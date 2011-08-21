@@ -1,5 +1,12 @@
 (ns parser
-  (:import java.util.Date java.io.FileInputStream))
+  (:import java.util.Date java.io.RandomAccessFile java.nio.channels.FileChannel))
+
+(defn
+  safe-char
+  "Converts int to char without throwing an exception if the integer
+  has a negative value. Used for parsing the main binary file."
+  [c] (if (> c 0) (char c) c))
+
 
 (defn read-field
   [buf n type]
@@ -66,4 +73,29 @@
     [:player-spot-color 8 :dword]
     [:player-spot-index 8 :byte]))
 
-(parse-headers (FileInputStream. "replay.SC2Replay"))
+
+;
+;    File file = new File("filename");
+;    // Create a read-only memory-mapped file
+;    FileChannel roChannel = new RandomAccessFile(file, "r").getChannel();
+;
+;    ByteBuffer readonlybuffer = roChannel.map(FileChannel.MapMode.READ_ONLY, 0, (int) roChannel
+;        .size());
+
+(defn file-channel
+  "Returns a read only FileChannel for a given file name"
+  [filename]
+  (. (RandomAccessFile. "replay.SC2Replay" "r") getChannel))
+
+(defn file-channel-to-byte
+  "Converts FileChannel to ByteBuffer"
+  [channel]
+  (. channel map (java.nio.channels.FileChannel$MapMode/READ_ONLY) 0 (.size channel)))
+
+(defn file-to-byte
+  "Returns a ByteBuffer for a given filename"
+  [filename]
+  (file-channel-to-byte (file-channel filename)))
+
+
+(parse-headers (file-to-byte "replay.SC2Replay"))
